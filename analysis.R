@@ -595,8 +595,8 @@ climate <- dplyr::select(grd_100pt, clim.cat, logInRMOccur_Buff)
 
 grd_100pt <- grd_100pt %>% mutate(logInRMOccur_Buff=replace_na(logInRMOccur_Buff, 0))
 
-# plot climate velocities on grid, highlight 90th and 95th percentiles
-tiff("climateMap.tiff", units="cm", width=12.5, height=12.5, res=350)
+# plot climate velocities on grid, highlight 80th and 95th percentiles
+tiff("climateMap_legend.tiff", units="cm", width=12.5, height=12.5, res=350)
 ggplot()+
   geom_sf(data=land, fill="white", color="black")+
   #geom_sf(grd_100, mapping=aes(fill=clim.cat), color=NA, alpha=0.7)+
@@ -608,7 +608,7 @@ ggplot()+
   #scale_color_manual(values=c("black", "white"))+
   scale_size_continuous(range=c(0.01, 1.99999))+
   coord_sf(xlim=c(-3935000, 2957500), ylim=c(-2838545,4563455))+
-  theme_void() + theme(legend.position = "none")
+  theme_void()
 dev.off()
 
 climate <- filter(climate, !is.na(rcp85_2080))
@@ -920,8 +920,9 @@ chi.pie <- ggplot()+
   scale_color_manual(values=c("royalblue3", "red3"))+ylim(0,600)+
   theme_minimal() + labs(tag="   ")
 
-tiff("tukeys.tiff", height = 8, width = 8, res=400)
-ggplot(fams, aes(x=variable, y=value))+
+library(ggsignif)
+png("tukeys.png", units="cm", height = 12, width = 20, res=400)
+p1 <- ggplot(fams, aes(x=variable, y=value))+
   geom_boxplot(fill="grey80", color="black")+
   scale_x_discrete() + xlab("Family")+
   ylab("Completeness")+
@@ -938,8 +939,7 @@ ggplot(fams, aes(x=variable, y=value))+
               map_signif_level = TRUE,
               tip_length=0,
               y_position = c(-0.1, -0.2, -0.3, -0.4, 1.1, 1.2, 1.3, -0.6, -0.7, 1.5)) +
-  theme_minimal()
-dev.off()
+  theme_minimal()+ scale_x_discrete(labels=c("Nym", "Pap", "Lyc", "Hes", "Pie"))+ labs(tag="(a)")
 
 p2 <- ggplot(fams.obs, aes(x=variable, y=value))+
   geom_boxplot(fill="grey80", color="black")+
@@ -958,7 +958,7 @@ p2 <- ggplot(fams.obs, aes(x=variable, y=value))+
               map_signif_level = TRUE,
               tip_length=0,
               y_position = c(-0.1, -0.2, -0.3, -0.4, 1.1, 1.2, 1.3, -0.6, -0.7, 1.5)) +
-  theme_minimal()
+  theme_minimal() + ylab("")+ scale_x_discrete(labels=c("Nym", "Pap", "Lyc", "Hes", "Pie"))+ labs(tag="(b)")
 
 p3 <- ggplot(fams.spec, aes(x=variable, y=value))+
   geom_boxplot(fill="grey80", color="black")+
@@ -977,9 +977,10 @@ p3 <- ggplot(fams.spec, aes(x=variable, y=value))+
               map_signif_level = TRUE,
               tip_length=0,
               y_position = c(-0.1, -0.2, -0.3, -0.4, 1.1, 1.2, 1.3, -0.6, -0.7, 1.5)) +
-  theme_minimal()
+  theme_minimal() + ylab("")+ scale_x_discrete(labels=c("Nym", "Pap", "Lyc", "Hes", "Pie"))+ labs(tag="(c)")
 
-grid.arrange(p1, p2, p3, ncol=3)
+grid.arrange(p1, p2, p3, ncol=3, nrow=1)
+dev.off()
 # decades
 # i = 1950
 # while(i < 2020){
@@ -1365,7 +1366,7 @@ dev.off()
 # Hesperiidae
 grd_100_p1_obse <- ggplot()+
   geom_sf(data=land, fill="white", color="black")+
-  geom_sf(grd_100, mapping=aes(fill=hesobsRatio), color=NA, alpha=0.7, show.legend=FALSE)+
+  geom_sf(grd_100, mapping=aes(fill=hesobsRatio), color=NA, alpha=0.7, show.legend=TRUE)+
   scale_fill_gradient2(low="#3c9ab2", mid="#e8c927", high="#f22300", na.value=NA, limits=c(0,1), midpoint=0.5)+
   coord_sf(xlim=c(-3935000, 2957500), ylim=c(-2838545,4563455))+
   theme_void() + labs(tag="(c)")
@@ -1651,8 +1652,18 @@ dev.off()
 ################
 
 boreal <- st_read("borealtundra.shp")
-boreal <- st_transform(boreal, st_crs(102008))
+boreal <- st_transform(boreal, st_crs(crs.1))
 boreal <- st_crop(boreal, grd_100)
+
+tiff("100kmFamilyAll_withChi.tiff", units="cm", width=10, height=10, res=350)
+ggplot()+
+  geom_sf(data=land, fill="grey", color=NA)+
+  geom_sf(data=boreal, fill="#234F1E", color=NA)+
+  coord_sf(xlim=c(-3935000, 2957500), ylim=c(-2838545,4563455))+
+  theme_void()+
+  theme(legend.title = element_blank())
+dev.off()
+
 
 # 100km scale over time #
 p1 <- ggplot()+
